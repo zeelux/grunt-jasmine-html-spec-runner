@@ -11,6 +11,7 @@ module.exports = function( grunt ){
     var fs = require( 'fs' );
     var path = require( 'path' );
 
+    var task_path = 'node_modules/grunt-jasmine-task/tasks/';
     // External libs.
     var Tempfile = require( 'temporary/lib/file' );
 
@@ -39,27 +40,27 @@ module.exports = function( grunt ){
             
             var testName = suite + ' : ' + name + '...';
             if( grunt.option( 'verbose' ) ){
-	            grunt.log.write( testName );
-	            if( failedAssertions > 0 ){
+                grunt.log.write( testName );
+                if( failedAssertions > 0 ){
                     grunt.log.error();
-	            }else if( skippedAssertions > 0 ){
+                }else if( skippedAssertions > 0 ){
                     grunt.log.warn();
-	            }else{
-	            	grunt.log.ok();
-	            }
+                }else{
+                    grunt.log.ok();
+                }
             }else{
-	            if( failedAssertions > 0 ){
-	            	if( errorReporting ){
-			            grunt.log.write( testName.red );
-			            grunt.log.error();
-	            	}else{
-	                    grunt.log.write( 'F'.red );
-	                }
-	            }else if( skippedAssertions > 0 ){
+                if( failedAssertions > 0 ){
+                    if( errorReporting ){
+                        grunt.log.write( testName.red );
+                        grunt.log.error();
+                    }else{
+                        grunt.log.write( 'F'.red );
+                    }
+                }else if( skippedAssertions > 0 ){
                     grunt.log.write( '*'.red );
-	            }else{
-	            	grunt.log.write( '.'.green );
-	            }
+                }else{
+                    grunt.log.write( '.'.green );
+                }
             }
         },
         done : function( elapsed ){
@@ -94,7 +95,8 @@ module.exports = function( grunt ){
         errorReporting = !!grunt.config( [ 'jasmine', this.target, 'errorReporting' ] );
 
         // Get files as URLs.
-        var urls = grunt.file.expandFileURLs( this.file.src );
+        //console.log(grunt.config( [ 'jasmine', this.target, 'src' ] ));
+        var urls = grunt.config( [ 'jasmine', this.target, 'src' ] ); //this.filesSrc; //grunt.file.expandFileURLs( this.file.src );
 
         // This task is asynchronous.
         var done = this.async();
@@ -103,13 +105,14 @@ module.exports = function( grunt ){
         status = {failed : 0, passed : 0, total : 0, skipped : 0, specs : 0, duration : 0};
 
         // Process each filepath in-order.
-        grunt.utils.async.forEachSeries( urls, function( url, next ){
+        grunt.util.async.forEachSeries( urls, function( url, next ){
             var basename = path.basename( url );
             grunt.verbose.subhead( 'Running specs for ' + basename ).or.write( 'Running specs for ' + basename );
             grunt.log.writeln();
 
             // Create temporary file to be used for grunt-phantom communication.
             var tempfile = new Tempfile();
+            //console.log(tempfile);
             // Timeout ID.
             var id;
             // The number of tempfile lines already read.
@@ -161,20 +164,23 @@ module.exports = function( grunt ){
             }());
 
             // Launch PhantomJS.
-            grunt.helper( 'phantomjs', {
+            phantomjs({
                 code : 90,
                 args : [
                     // The main script file.
-                    grunt.task.getFile( 'jasmine/phantom-jasmine-runner.js' ),
+                    //grunt.task.getFile( 'jasmine/phantom-jasmine-runner.js' ),
+                    task_path + 'jasmine/phantom-jasmine-runner.js',
                     // The temporary file used for communications.
                     tempfile.path,
                     // The Jasmine helper file to be injected.
-                    grunt.task.getFile( 'jasmine/jasmine-helper.js' ),
+                    //grunt.task.getFile( 'jasmine/jasmine-helper.js' ),
+                    task_path + 'jasmine/jasmine-helper.js',
                     // URL to the Jasmine .html test file to run.
                     url,
                     timeout,
                     // PhantomJS options.
-                    '--config=' + grunt.task.getFile( 'jasmine/phantom-config.json' )
+                    //'--config=' + task_path + 'jasmine/phantom-config.json'
+                    ''
                 ],
                 done : function( err ){
                     if( err ){
@@ -206,8 +212,8 @@ module.exports = function( grunt ){
     // HELPERS
     // ==========================================================================
 
-    grunt.registerHelper( 'phantomjs', function( options ){
-        return grunt.utils.spawn( { cmd : 'phantomjs', args : options.args }, function( err, result, code ){
+    function phantomjs( options ){ 
+        return grunt.util.spawn( { cmd : 'phantomjs', args : options.args }, function( err, result, code ){
             if( !err ){
                 return options.done( null );
             }
@@ -225,11 +231,15 @@ module.exports = function( grunt ){
                 );
                 grunt.warn( 'PhantomJS not found.', options.code );
             }else{
-                result.split( '\n' ).forEach( grunt.log.error, grunt.log );
+                //result.split( '\n' ).forEach( grunt.log.error, grunt.log );
+                //if(result) { 
+                //    result.split('\n').forEach(grunt.log.error, grunt.log); 
+                //}
+
                 grunt.warn( 'PhantomJS exited unexpectedly with exit code ' + code + '.', options.code );
             }
             options.done( code );
         } );
-    } );
+    }
 
 };
