@@ -11,7 +11,7 @@ module.exports = function( grunt ){
     var fs = require( 'fs' );
     var path = require( 'path' );
 
-    var task_path = 'node_modules/grunt-jasmine-task/tasks/';
+    var task_path = 'node_modules/grunt-jasmine-html-spec-runner/tasks/';
     // External libs.
     var Tempfile = require( 'temporary/lib/file' );
 
