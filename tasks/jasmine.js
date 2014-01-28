@@ -31,7 +31,7 @@ module.exports = function( grunt ){
         begin : function(){
 
         },
-        testDone : function( suite, name, totalAssertions, passedAssertions, failedAssertions, skippedAssertions ){
+        testDone : function( suite, name, totalAssertions, passedAssertions, failedAssertions, skippedAssertions, assertions ){
             status.specs++;
             status.failed += failedAssertions;
             status.passed += passedAssertions;
@@ -51,8 +51,18 @@ module.exports = function( grunt ){
             }else{
                 if( failedAssertions > 0 ){
                     if( errorReporting ){
-                        grunt.log.write( testName.red );
-                        grunt.log.error();
+
+                        grunt.log.writeln();
+                        grunt.log.writeln( testName.red );
+
+                        // show assertions
+                        JSON.parse(assertions).forEach(function(assertion) {
+
+                            var color = assertion.passed ? 'green' : 'red';
+                            grunt.log.writeln('> ' + assertion.message[color]);
+
+                        });
+
                     }else{
                         grunt.log.write( 'F'.red );
                     }
